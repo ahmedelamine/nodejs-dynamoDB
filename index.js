@@ -12,6 +12,7 @@ import {
   UpdateCommand,
   DeleteCommand,
   QueryCommand,
+  ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
 
 const app = express();
@@ -221,6 +222,10 @@ app.delete("/delete-item", async (req, res) => {
   including KeyConditionExpression. You use the expression attribute
   value :yyyy to address this.
 */
+
+// ProjectionExpression specifies the attributes you want in the scan result.
+// FilterExpression specifies a condition that returns only items that satisfy the condition. All other items are discarded.
+
 app.get("/query-movies-by-year", async (req, res) => {
   const params = {
     TableName: "Movies",
@@ -246,8 +251,9 @@ app.get("/query-movies-by-year", async (req, res) => {
 app.get("/query-movies-by-year-and-title", async (req, res) => {
   const params = {
     TableName: "Movies",
-    ProjectionExpression:"#yr, title, info.genres, info.actors",
-    KeyConditionExpression: "#yr = :yyyy and title between :letter1 and :letter2",
+    ProjectionExpression: "#yr, title, info.genres, info.actors",
+    KeyConditionExpression:
+      "#yr = :yyyy and title between :letter1 and :letter2",
     ExpressionAttributeNames: {
       "#yr": "year",
     },
@@ -265,7 +271,31 @@ app.get("/query-movies-by-year-and-title", async (req, res) => {
     console.log("Error", err);
     res.json({ message: err.message });
   }
-})
+});
+
+// Scan
+app.get("/scan-movies", async (req, res) => {
+  const params = {
+    TableName: "Movies",
+    ProjectionExpression: "#yr, title, info.rating",
+    FilterExpression: "#yr between :start_yr and :end_yr",
+    ExpressionAttributeNames: {
+      "#yr": "year",
+    },
+    ExpressionAttributeValues: {
+      ":start_yr": parseInt(req.query.start_yr),
+      ":end_yr": parseInt(req.query.end_yr),
+    },
+  };
+  try {
+    const data = await ddbDocClient.send(new ScanCommand(params));
+    // console.log("Success - item retrieved", data);
+    res.json(data);
+  } catch (err) {
+    console.log("Error", err);
+    res.json({ message: err.message });
+  }
+});
 
 const PORT = 5000 | process.env.PORT;
 app.listen(PORT, () => console.log(`server running in PORT ${PORT}`));

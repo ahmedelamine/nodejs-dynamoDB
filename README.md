@@ -12,3 +12,6 @@ The code examples in this directory demonstrate how to work with Amazon DynamoDB
 6. `POST /increment-rating`
 7. `POST /update-item-conditionally`
 8. `DELETE /delete-item?year=movieYear&title=movieTitle`
+9. `GET /query-movies-by-year?year=movieYear`
+10. `GET /query-movies-by-year-and-title?year=movieYear&letter1=A&letter2=L`
+11. `GET /scan-movies?start_yr=1950&end_yr=2000`
