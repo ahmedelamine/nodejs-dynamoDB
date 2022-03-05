@@ -6,7 +6,13 @@ import fs from "fs";
 import dbClient from "./lib/dbClient.js";
 import ddbDocClient from "./lib/ddbDocClient.js";
 import { CreateTableCommand } from "@aws-sdk/client-dynamodb";
-import { PutCommand, GetCommand, UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  PutCommand,
+  GetCommand,
+  UpdateCommand,
+  DeleteCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
 
 const app = express();
 
@@ -202,6 +208,64 @@ app.delete("/delete-item", async (req, res) => {
     res.json({ message: err.message });
   }
 });
+
+// Query - All movies released in a given year
+/*
+  ExpressionAttributeNames provides name substitution. 
+  You use this because year is a reserved word in Amazon DynamoDB. 
+  You can't use it directly in any expression, including KeyConditionExpression. 
+  You use the expression attribute name #yr to address this.
+  
+  ExpressionAttributeValues provides value substitution. 
+  You use this because you cannot use literals in any expression, 
+  including KeyConditionExpression. You use the expression attribute
+  value :yyyy to address this.
+*/
+app.get("/query-movies-by-year", async (req, res) => {
+  const params = {
+    TableName: "Movies",
+    KeyConditionExpression: "#yr = :yyyy",
+    ExpressionAttributeNames: {
+      "#yr": "year",
+    },
+    ExpressionAttributeValues: {
+      ":yyyy": parseInt(req.query.year),
+    },
+  };
+  try {
+    const data = await ddbDocClient.send(new QueryCommand(params));
+    // console.log("Success - item retrieved", data);
+    res.json(data);
+  } catch (err) {
+    console.log("Error", err);
+    res.json({ message: err.message });
+  }
+});
+
+// Query - All Movies Released in a Year with Certain Titles
+app.get("/query-movies-by-year-and-title", async (req, res) => {
+  const params = {
+    TableName: "Movies",
+    ProjectionExpression:"#yr, title, info.genres, info.actors",
+    KeyConditionExpression: "#yr = :yyyy and title between :letter1 and :letter2",
+    ExpressionAttributeNames: {
+      "#yr": "year",
+    },
+    ExpressionAttributeValues: {
+      ":yyyy": parseInt(req.query.year),
+      ":letter1": req.query.letter1,
+      ":letter2": req.query.letter2,
+    },
+  };
+  try {
+    const data = await ddbDocClient.send(new QueryCommand(params));
+    // console.log("Success - item retrieved", data);
+    res.json(data);
+  } catch (err) {
+    console.log("Error", err);
+    res.json({ message: err.message });
+  }
+})
 
 const PORT = 5000 | process.env.PORT;
 app.listen(PORT, () => console.log(`server running in PORT ${PORT}`));
