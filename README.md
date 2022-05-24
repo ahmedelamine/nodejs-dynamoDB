@@ -1,7 +1,9 @@
 # Amazon DynamoDB JavaScript SDK v3 code examples (Node.js and DynamoDB)
-The code examples in this directory demonstrate how to work with Amazon DynamoDB using the AWS SDK for JavaScript version 3 (v3)
+The code examples in this directory demonstrate how to work with Amazon DynamoDB using the AWS SDK for JavaScript version 3 (v3).
 
-**Note**: All code examples are written in ECMAscript 6 (ES6)
+**Note**: 
+* All code examples are written in ECMAscript 6 (ES6)
+* This is a RestAPI, that have many endpoints to work with DynamoDB
 
 ### API Endpoints
 1. `POST /create-table`
